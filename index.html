@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Swift WASM Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+    </div>
+    <script type="module">
+        // Import the WASM module, adjust the path as necessary
+        import { init } from "./.build/plugins/PackageToJS/outputs/Package/index.js";
+        // Initialize WASM when the page loads
+        init();
+    </script>
+</body>
+</html> 
