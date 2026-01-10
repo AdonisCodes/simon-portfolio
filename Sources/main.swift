@@ -6,7 +6,7 @@ struct Project {
     let name: String
     let description: String
     let image: String
-    let github: String
+    let github: String?
     let website: String?
 }
 
@@ -19,27 +19,27 @@ struct Social {
 
 nonisolated(unsafe) let projects = State([
     Project(
-        name: "SwiftVan",
-        description:
-            "A Swift-first UI-style DSL for building websites that compile to WebAssembly.",
-        image: "/images/swiftvan.png",
-        github: "https://github.com/adoniscodes/SwiftVan",
-        website: nil,
-    ),
-    Project(
         name: "GetAutoma",
         description:
             "Automation-first platform and tooling focused on reducing friction in real workflows.",
-        image: "/images/getautoma.png",
+        image: "/assets/getautoma.png",
         github: "https://github.com/adoniscodes/GetAutomaApp",
         website: "https://getautoma.app",
     ),
     Project(
-        name: "VIRAL-SHORTS-AI-BOT",
+        name: "SwiftVan",
         description:
-            "Python automation bot that converts long-form videos into viral short-form clips.",
-        image: "/images/viralshorts.png",
-        github: "https://github.com/AdonisCodes/VIRAL-SHORTS-AI-BOT",
+            "A Swift-first UI-style DSL for building websites that compile to WebAssembly.",
+        image: "/assets/swiftvan.png",
+        github: "https://github.com/GetAutomaApp/SwiftVan",
+        website: nil,
+    ),
+    Project(
+        name: "Coming Soon...",
+        description:
+            "I'm working on some more impressive projects at the moment, can't wait to share@",
+        image: "/assets/ellipsis.png",
+        github: nil,
         website: nil,
     ),
 ])
@@ -73,6 +73,69 @@ final class Header {
 
 // MARK: - Projects
 
+final class ProjectCard {
+    func render(_ project: Project) -> AnyElement {
+        Div(attributes: { ["className": "project-card"] }) {
+
+            Image(attributes: {
+                [
+                    "src": project.image,
+                    "className": "project-image",
+                ]
+            })
+
+            Div(attributes: { ["className": "project-body"] }) {
+
+                Div(attributes: { ["className": "project-title"] }) {
+                    Text({ project.name })
+                }
+
+                Div(attributes: { ["className": "project-desc"] }) {
+                    Text({ project.description })
+                }
+
+                Div(attributes: { ["className": "project-links"] }) {
+                    If(
+                        { project.github != nil },
+                        states: [],
+                        If: {
+                            HyperLink(
+                                attributes: {
+                                    [
+                                        "href": project.github!,
+                                        "target": "_blank",
+                                        "className": "button",
+                                    ]
+                                }
+                            ) {
+                                Text({ "GitHub" })
+                            }
+                        }
+                    )
+
+                    If(
+                        { project.website != nil },
+                        states: [],
+                        If: {
+                            HyperLink(
+                                attributes: {
+                                    [
+                                        "href": project.website!,
+                                        "target": "_blank",
+                                        "className": "button secondary",
+                                    ]
+                                }
+                            ) {
+                                Text({ "Website" })
+                            }
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
 final class ProjectsSection {
     func render() -> AnyElement {
         Div(attributes: { ["className": "section"] }) {
@@ -82,64 +145,7 @@ final class ProjectsSection {
             }
 
             ForEach(items: projects) { project in
-                Div(attributes: { ["className": "project-card"] }) {
-
-                    Image(attributes: {
-                        [
-                            "src": project.image,
-                            "className": "project-image",
-                        ]
-                    })
-
-                    Div(attributes: { ["className": "project-body"] }) {
-
-                        Div(attributes: { ["className": "project-title"] }) {
-                            Text({ project.name })
-                        }
-
-                        Div(attributes: { ["className": "project-desc"] }) {
-                            Text({ project.description })
-                        }
-
-                        Div(attributes: { ["className": "project-links"] }) {
-
-                            HyperLink(
-                                attributes: {
-                                    [
-                                        "href": project.github,
-                                        "target": "_blank",
-                                        "className": "button",
-                                    ]
-                                }
-                            ) {
-                                Text({ "GitHub" })
-                            }
-
-                            If(
-                                { project.website != nil },
-                                states: [],
-                                If: {
-                                    [
-                                        HyperLink(
-                                            attributes: {
-                                                [
-                                                    "href": project.website!,
-                                                    "target": "_blank",
-                                                    "className": "button secondary",
-                                                ]
-                                            }
-                                        ) {
-                                            Text({ "Website" })
-                                        }
-                                    ]
-                                },
-                                Else: {
-                                    []
-                                }
-                            )
-                        }
-                    }
-                }
+                ProjectCard().render(project)
             }
         }
     }
