@@ -35,6 +35,14 @@ nonisolated(unsafe) let projects = State([
         website: nil,
     ),
     Project(
+        name: "WildLand",
+        description:
+            "Low-Poly toon-shaded Survival Game Built with SwiftWASM",
+        image: "/assets/wildland.png",
+        github: "https://github.com/wildland-game",
+        website: nil,
+    ),
+    Project(
         name: "Coming Soon...",
         description:
             "I'm working on some more impressive projects at the moment, can't wait to share@",
