@@ -43,6 +43,14 @@ nonisolated(unsafe) let projects = State([
         website: nil,
     ),
     Project(
+        name: "Personal Tool",
+        description:
+            "My own Closed-Source & Private Tool for Productivity & Fun!!!",
+        image: "/assets/wildland.png",
+        github: nil,
+        website: "https://www.youtube.com/watch?v=nxIf2kuShtY",
+    ),
+    Project(
         name: "Coming Soon...",
         description:
             "I'm working on some more impressive projects at the moment, can't wait to share@",
