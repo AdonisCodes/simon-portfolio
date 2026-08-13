@@ -292,6 +292,13 @@ final class StatsPage {
                                 Text({ "Avg HR" })
                             }
                         }
+
+                        Button(
+                            { ["className": "button secondary share-button"] },
+                            onclick: { shareRunChart() },
+                        ) {
+                            Text({ "Share" })
+                        }
                     }
 
                     Div(attributes: { ["className": "chart-container"] }) {

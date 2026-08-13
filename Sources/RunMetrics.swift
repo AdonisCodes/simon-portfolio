@@ -11,21 +11,9 @@ struct RunEntry {
 
 // MARK: - Data
 
-nonisolated(unsafe) let runEntries: [RunEntry] = [
-    RunEntry(date: "2026-01-06", avgSpeedPerKm: "11:42", runHrAverage: 132),
-    RunEntry(date: "2026-01-13", avgSpeedPerKm: "11:28", runHrAverage: 134),
-    RunEntry(date: "2026-01-20", avgSpeedPerKm: "11:15", runHrAverage: 136),
-    RunEntry(date: "2026-02-03", avgSpeedPerKm: "11:05", runHrAverage: 137),
-    RunEntry(date: "2026-02-17", avgSpeedPerKm: "10:58", runHrAverage: 138),
-    RunEntry(date: "2026-03-02", avgSpeedPerKm: "10:50", runHrAverage: 139),
-    RunEntry(date: "2026-03-16", avgSpeedPerKm: "10:45", runHrAverage: 140),
-    RunEntry(date: "2026-04-01", avgSpeedPerKm: "10:38", runHrAverage: 141),
-    RunEntry(date: "2026-04-15", avgSpeedPerKm: "10:32", runHrAverage: 141),
-    RunEntry(date: "2026-05-06", avgSpeedPerKm: "10:28", runHrAverage: 142),
-    RunEntry(date: "2026-05-20", avgSpeedPerKm: "10:24", runHrAverage: 142),
-    RunEntry(date: "2026-06-10", avgSpeedPerKm: "10:22", runHrAverage: 143),
-    RunEntry(date: "2026-07-01", avgSpeedPerKm: "10:20", runHrAverage: 143),
-    RunEntry(date: "2026-08-13", avgSpeedPerKm: "10:19", runHrAverage: 143),
+let runEntries: [RunEntry] = [
+    RunEntry(date: "2026-08-12", avgSpeedPerKm: "10:01", runHrAverage: 145),
+    RunEntry(date: "2026-08-13", avgSpeedPerKm: "10:30", runHrAverage: 148),
 ]
 
 // MARK: - Helpers
@@ -56,30 +44,46 @@ func formatKmh(_ value: Double) -> String {
     String(format: "%.1f", value)
 }
 
-// MARK: - Chart
+// MARK: - Chart Layout
 
-func buildRunChartSVG(entries: [RunEntry]) -> String {
-    guard !entries.isEmpty else { return "" }
+struct ChartLayout {
+    let entries: [RunEntry]
+    let width: Double
+    let height: Double
+    let padLeft: Double
+    let padRight: Double
+    let padTop: Double
+    let padBottom: Double
 
-    let width = 812.0
-    let height = 320.0
-    let padLeft = 44.0
-    let padRight = 44.0
-    let padTop = 28.0
-    let padBottom = 36.0
-    let plotWidth = width - padLeft - padRight
-    let plotHeight = height - padTop - padBottom
+    let speeds: [Double]
+    let heartRates: [Double]
+    let minSpeed: Double
+    let maxSpeed: Double
+    let minHR: Double
+    let maxHR: Double
 
-    let speeds = entries.map { paceToKmh($0.avgSpeedPerKm) }
-    let heartRates = entries.map { Double($0.runHrAverage) }
+    var plotWidth: Double { width - padLeft - padRight }
+    var plotHeight: Double { height - padTop - padBottom }
+    var speedRange: Double { max(maxSpeed - minSpeed, 0.01) }
+    var hrRange: Double { max(maxHR - minHR, 1) }
 
-    let minSpeed = (speeds.min() ?? 0) * 0.96
-    let maxSpeed = (speeds.max() ?? 1) * 1.04
-    let minHR = (heartRates.min() ?? 0) - 4
-    let maxHR = (heartRates.max() ?? 1) + 4
+    init(entries: [RunEntry], width: Double, height: Double, padLeft: Double = 44, padRight: Double = 44, padTop: Double = 28, padBottom: Double = 36) {
+        self.entries = entries
+        self.width = width
+        self.height = height
+        self.padLeft = padLeft
+        self.padRight = padRight
+        self.padTop = padTop
+        self.padBottom = padBottom
 
-    let speedRange = max(maxSpeed - minSpeed, 0.01)
-    let hrRange = max(maxHR - minHR, 1)
+        speeds = entries.map { paceToKmh($0.avgSpeedPerKm) }
+        heartRates = entries.map { Double($0.runHrAverage) }
+
+        minSpeed = (speeds.min() ?? 0) * 0.96
+        maxSpeed = (speeds.max() ?? 1) * 1.04
+        minHR = (heartRates.min() ?? 0) - 4
+        maxHR = (heartRates.max() ?? 1) + 4
+    }
 
     func xPosition(_ index: Int) -> Double {
         let denominator = max(entries.count - 1, 1)
@@ -93,64 +97,184 @@ func buildRunChartSVG(entries: [RunEntry]) -> String {
     func yHeartRate(_ value: Double) -> Double {
         padTop + plotHeight - ((value - minHR) / hrRange) * plotHeight
     }
+}
 
-    var svg = """
-    <svg viewBox="0 0 \(Int(width)) \(Int(height))" class="run-chart-svg" preserveAspectRatio="none" aria-hidden="true">
-    <rect x="0" y="0" width="\(Int(width))" height="\(Int(height))" fill="transparent"/>
+// MARK: - SVG Builders
+
+func buildRunChartContent(layout: ChartLayout) -> String {
+    guard !layout.entries.isEmpty else { return "" }
+
+    var content = """
+    <rect x="0" y="0" width="\(Int(layout.width))" height="\(Int(layout.height))" fill="transparent"/>
     """
 
     let gridLines = 4
     for index in 0 ... gridLines {
-        let y = padTop + (Double(index) / Double(gridLines)) * plotHeight
-        svg += """
-        <line x1="\(padLeft)" y1="\(y)" x2="\(width - padRight)" y2="\(y)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        let y = layout.padTop + (Double(index) / Double(gridLines)) * layout.plotHeight
+        content += """
+        <line x1="\(layout.padLeft)" y1="\(y)" x2="\(layout.width - layout.padRight)" y2="\(y)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
         """
     }
 
     var speedPolyline = ""
     var hrPolyline = ""
-    for (index, _) in entries.enumerated() {
-        let x = xPosition(index)
-        speedPolyline += "\(x),\(ySpeed(speeds[index])) "
-        hrPolyline += "\(x),\(yHeartRate(heartRates[index])) "
+    for (index, _) in layout.entries.enumerated() {
+        let x = layout.xPosition(index)
+        speedPolyline += "\(x),\(layout.ySpeed(layout.speeds[index])) "
+        hrPolyline += "\(x),\(layout.yHeartRate(layout.heartRates[index])) "
     }
 
-    svg += """
+    content += """
     <polyline points="\(speedPolyline.trimmingCharacters(in: .whitespaces))" fill="none" stroke="#4fa760" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
     <polyline points="\(hrPolyline.trimmingCharacters(in: .whitespaces))" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/>
     """
 
-    let labelCount = min(8, entries.count)
-    let labelStep = max((entries.count - 1) / max(labelCount - 1, 1), 1)
+    let labelCount = min(8, layout.entries.count)
+    let labelStep = max((layout.entries.count - 1) / max(labelCount - 1, 1), 1)
     var labelIndex = 0
-    while labelIndex < entries.count {
-        let x = xPosition(labelIndex)
-        let label = formatShortDate(entries[labelIndex].date)
-        svg += """
-        <line x1="\(x)" y1="\(padTop + plotHeight)" x2="\(x)" y2="\(padTop + plotHeight + 4)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-        <text x="\(x)" y="\(height - 10)" fill="#9a9a9a" font-size="11" text-anchor="middle">\(label)</text>
+    while labelIndex < layout.entries.count {
+        let x = layout.xPosition(labelIndex)
+        let label = formatShortDate(layout.entries[labelIndex].date)
+        content += """
+        <line x1="\(x)" y1="\(layout.padTop + layout.plotHeight)" x2="\(x)" y2="\(layout.padTop + layout.plotHeight + 4)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <text x="\(x)" y="\(layout.height - 10)" fill="#9a9a9a" font-size="11" text-anchor="middle">\(label)</text>
         """
         labelIndex += labelStep
     }
 
     for index in 0 ... gridLines {
-        let speedValue = maxSpeed - (Double(index) / Double(gridLines)) * speedRange
-        let hrValue = maxHR - (Double(index) / Double(gridLines)) * hrRange
-        let y = padTop + (Double(index) / Double(gridLines)) * plotHeight
+        let speedValue = layout.maxSpeed - (Double(index) / Double(gridLines)) * layout.speedRange
+        let hrValue = layout.maxHR - (Double(index) / Double(gridLines)) * layout.hrRange
+        let y = layout.padTop + (Double(index) / Double(gridLines)) * layout.plotHeight
 
-        svg += """
-        <text x="\(padLeft - 8)" y="\(y + 4)" fill="#4fa760" font-size="10" text-anchor="end">\(formatKmh(speedValue))</text>
-        <text x="\(width - padRight + 8)" y="\(y + 4)" fill="#ffffff" font-size="10" text-anchor="start">\(Int(hrValue))</text>
+        content += """
+        <text x="\(layout.padLeft - 8)" y="\(y + 4)" fill="#4fa760" font-size="10" text-anchor="end">\(formatKmh(speedValue))</text>
+        <text x="\(layout.width - layout.padRight + 8)" y="\(y + 4)" fill="#ffffff" font-size="10" text-anchor="start">\(Int(hrValue))</text>
         """
     }
 
-    svg += "</svg>"
-    return svg
+    return content
 }
+
+func buildRunChartSVG(layout: ChartLayout) -> String {
+    guard !layout.entries.isEmpty else { return "" }
+
+    return """
+    <svg viewBox="0 0 \(Int(layout.width)) \(Int(layout.height))" class="run-chart-svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    \(buildRunChartContent(layout: layout))
+    </svg>
+    """
+}
+
+func buildShareChartSVG(entries: [RunEntry], size: Int = 1000) -> String {
+    let layout = ChartLayout(
+        entries: entries,
+        width: 812,
+        height: 320,
+        padLeft: 48,
+        padRight: 48,
+        padTop: 28,
+        padBottom: 36,
+    )
+
+    let canvas = Double(size)
+    let sideMargin = 48.0
+    let headerHeight = 168.0
+    let bottomMargin = 48.0
+
+    let maxChartWidth = canvas - (sideMargin * 2)
+    let maxChartHeight = canvas - headerHeight - bottomMargin
+    let chartAspect = layout.width / layout.height
+
+    var chartWidth = maxChartWidth
+    var chartHeight = chartWidth / chartAspect
+    if chartHeight > maxChartHeight {
+        chartHeight = maxChartHeight
+        chartWidth = chartHeight * chartAspect
+    }
+
+    let chartX = (canvas - chartWidth) / 2
+    let chartY = headerHeight + ((maxChartHeight - chartHeight) / 2)
+
+    return """
+    <svg xmlns="http://www.w3.org/2000/svg" width="\(size)" height="\(size)" viewBox="0 0 \(size) \(size)">
+    <rect width="\(size)" height="\(size)" fill="#000000"/>
+    <text x="\(sideMargin)" y="72" fill="#ffffff" font-size="42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-weight="700">Run Stats</text>
+    <text x="\(sideMargin)" y="108" fill="#9a9a9a" font-size="22" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">simonferns.com</text>
+    <circle cx="\(sideMargin)" cy="142" r="7" fill="#4fa760"/>
+    <text x="\(sideMargin + 18)" y="148" fill="#bdbdbd" font-size="20" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">Pace (km/h)</text>
+    <circle cx="\(sideMargin + 200)" cy="142" r="7" fill="#ffffff"/>
+    <text x="\(sideMargin + 218)" y="148" fill="#bdbdbd" font-size="20" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">Avg HR</text>
+    <svg x="\(chartX)" y="\(chartY)" width="\(chartWidth)" height="\(chartHeight)" viewBox="0 0 \(Int(layout.width)) \(Int(layout.height))" preserveAspectRatio="xMidYMid meet">
+    \(buildRunChartContent(layout: layout))
+    </svg>
+    </svg>
+    """
+}
+
+// MARK: - Mount
+
+nonisolated(unsafe) private var shareLoadClosure: JSClosure?
+nonisolated(unsafe) private var shareBlobClosure: JSClosure?
 
 func mountRunChart() {
     let document = JSObject.global.document
     guard let container = document.getElementById("run-chart-container").object else { return }
 
-    container.innerHTML = JSValue.string(buildRunChartSVG(entries: runEntries))
+    let layout = ChartLayout(entries: runEntries, width: 812, height: 320)
+    container.innerHTML = JSValue.string(buildRunChartSVG(layout: layout))
+}
+
+// MARK: - Share
+
+func shareRunChart() {
+    let svg = buildShareChartSVG(entries: runEntries, size: 1000)
+    let document = JSObject.global.document
+    guard let image = document.createElement("img").object else { return }
+
+    let encoded = JSObject.global.encodeURIComponent.function!(JSValue.string(svg)).string ?? ""
+    let dataUrl = "data:image/svg+xml;charset=utf-8,\(encoded)"
+
+    shareBlobClosure = JSClosure { args in
+        guard let blob = args.first?.object else { return .undefined }
+        let blobUrl = JSObject.global.URL.createObjectURL(JSValue.object(blob)).string ?? ""
+        guard !blobUrl.isEmpty else { return .undefined }
+
+        guard let link = document.createElement("a").object else { return .undefined }
+        link["href"] = JSValue.string(blobUrl)
+        link["download"] = JSValue.string("run-stats.png")
+        _ = link.click!()
+        _ = JSObject.global.URL.revokeObjectURL(JSValue.string(blobUrl))
+
+        return .undefined
+    }
+
+    shareLoadClosure = JSClosure { _ in
+        guard let canvas = document.createElement("canvas").object,
+              let context = canvas.getContext!("2d").object
+        else { return .undefined }
+
+        canvas["width"] = JSValue.number(1000)
+        canvas["height"] = JSValue.number(1000)
+        context["fillStyle"] = JSValue.string("#000000")
+        _ = context.fillRect!(JSValue.number(0), JSValue.number(0), JSValue.number(1000), JSValue.number(1000))
+        _ = context.drawImage!(
+            JSValue.object(image),
+            JSValue.number(0),
+            JSValue.number(0),
+            JSValue.number(1000),
+            JSValue.number(1000),
+        )
+
+        guard let blobClosure = shareBlobClosure else { return .undefined }
+        _ = canvas.toBlob!(JSValue.object(blobClosure), JSValue.string("image/png"))
+
+        return .undefined
+    }
+
+    if let loadClosure = shareLoadClosure {
+        image["onload"] = JSValue.object(loadClosure)
+    }
+    image["src"] = JSValue.string(dataUrl)
+    _ = shareBlobClosure
 }

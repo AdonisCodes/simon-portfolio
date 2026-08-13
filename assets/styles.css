@@ -60,6 +60,11 @@ normal {
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.share-button {
+    margin-left: auto;
 }
 
 .stats-card-title normal {
@@ -103,6 +108,7 @@ normal {
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.06);
     background: rgba(255, 255, 255, 0.02);
+    position: relative;
 }
 
 .run-chart {

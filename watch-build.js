@@ -1,12 +1,12 @@
 const { exec } = require("child_process");
 
-const buildCmd = "npm run build:main";
+const buildCmd = "bash scripts/build.sh";
 
 let serverProcess;
 
 function startServer() {
   if (serverProcess) serverProcess.kill();
-  serverProcess = exec("npx serve . -l 8080");
+  serverProcess = exec("npx serve . -l 8080 -s");
   serverProcess.stdout.pipe(process.stdout);
   serverProcess.stderr.pipe(process.stderr);
 }
