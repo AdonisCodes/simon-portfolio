@@ -1,4 +1,11 @@
+import JavaScriptKit
 import SwiftVan
+
+// MARK: - Routing
+
+func currentPath() -> String {
+    JSObject.global.location.pathname.string ?? "/"
+}
 
 // MARK: - Models
 
@@ -67,6 +74,34 @@ nonisolated(unsafe) let socials = State([
     Social(name: "Strava", url: "https://www.strava.com/athletes/196078897"),
     Social(name: "Printables", url: "https://www.printables.com/@adoniscodes_3658566"),
 ])
+
+// MARK: - Navigation
+
+final class NavBar {
+    let showStatsLink: Bool
+
+    init(showStatsLink: Bool = true) {
+        self.showStatsLink = showStatsLink
+    }
+
+    func render() -> AnyElement {
+        Div(attributes: { ["className": "nav"] }) {
+            HyperLink(attributes: { ["href": "/", "className": "social-link"] }) {
+                Text({ "Home" })
+            }
+
+            If(
+                { self.showStatsLink },
+                states: [],
+                If: {
+                    HyperLink(attributes: { ["href": "/stats", "className": "social-link"] }) {
+                        Text({ "Stats" })
+                    }
+                },
+            )
+        }
+    }
+}
 
 // MARK: - Header
 
@@ -228,11 +263,58 @@ final class ContactSection {
     }
 }
 
-// MARK: - App Root
+// MARK: - Stats
 
-final class App {
+final class StatsPage {
     func render() -> AnyElement {
         Div(attributes: { ["className": "container"] }) {
+            NavBar(showStatsLink: false).render()
+
+            Div(attributes: { ["className": "section"] }) {
+                Div(attributes: { ["className": "section-title"] }) {
+                    Text({ "Run Stats" })
+                }
+
+                Div(attributes: { ["className": "stats-card"] }) {
+                    Div(attributes: { ["className": "stats-card-header"] }) {
+                        Div(attributes: { ["className": "stats-card-title"] }) {
+                            Text({ "Pace & Heart Rate" })
+                        }
+
+                        Div(attributes: { ["className": "chart-legend"] }) {
+                            Div(attributes: { ["className": "legend-item"] }) {
+                                Span(attributes: { ["className": "legend-dot pace"] }) {}
+                                Text({ "Pace (km/h)" })
+                            }
+
+                            Div(attributes: { ["className": "legend-item"] }) {
+                                Span(attributes: { ["className": "legend-dot hr"] }) {}
+                                Text({ "Avg HR" })
+                            }
+                        }
+                    }
+
+                    Div(attributes: { ["className": "chart-container"] }) {
+                        Div(attributes: { ["id": "run-chart-container", "className": "run-chart"] }) {}
+                    }
+
+                    Div(attributes: { ["className": "stats-muted"] }) {
+                        Text({
+                            "Higher green line means faster pace. White line shows average heart rate over time."
+                        })
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - App Root
+
+final class HomePage {
+    func render() -> AnyElement {
+        Div(attributes: { ["className": "container"] }) {
+            NavBar().render()
             Header().render()
             SocialsSection().render()
             ProjectsSection().render()
@@ -241,7 +323,28 @@ final class App {
     }
 }
 
+final class App {
+    let path: String
+
+    init(path: String = currentPath()) {
+        self.path = path
+    }
+
+    func render() -> AnyElement {
+        if path == "/stats" {
+            return StatsPage().render()
+        }
+
+        return HomePage().render()
+    }
+}
+
 // MARK: - Mount
 
-let renderer = DomRenderer(root: App().render())
+let appPath = currentPath()
+let renderer = DomRenderer(root: App(path: appPath).render())
 renderer.mount()
+
+if appPath == "/stats" {
+    mountRunChart()
+}

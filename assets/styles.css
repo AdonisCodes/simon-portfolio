@@ -34,6 +34,95 @@ normal {
     margin-bottom: 72px;
 }
 
+/* ---------------- NAV ---------------- */
+
+.nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+/* ---------------- STATS ---------------- */
+
+.stats-card {
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.03),
+            rgba(255, 255, 255, 0.01));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 24px;
+}
+
+.stats-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.stats-card-title normal {
+    font-size: 18px;
+    font-weight: 600;
+    display: block;
+}
+
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #bdbdbd;
+    font-size: 13px;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    display: inline-block;
+}
+
+.legend-dot.pace {
+    background: #4fa760;
+}
+
+.legend-dot.hr {
+    background: #ffffff;
+}
+
+.chart-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.run-chart {
+    min-width: 100%;
+    width: 100%;
+}
+
+.run-chart-svg {
+    display: block;
+    width: 100%;
+    height: 320px;
+}
+
+.stats-muted normal {
+    color: #9a9a9a;
+    font-size: 13px;
+    display: block;
+    margin-top: 16px;
+}
+
 /* ---------------- HEADER ---------------- */
 
 .title normal {
@@ -318,5 +407,20 @@ normal {
 
     .email-link {
         font-size: 14px;
+    }
+
+    /* Stats */
+    .stats-card {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .stats-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .run-chart-svg {
+        height: 260px;
     }
 }
