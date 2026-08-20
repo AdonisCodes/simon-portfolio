@@ -42,22 +42,6 @@ nonisolated(unsafe) let projects = State([
         website: nil,
     ),
     Project(
-        name: "WildLand",
-        description:
-            "Low-Poly toon-shaded Survival Game Built with SwiftWASM",
-        image: "/assets/wildland.png",
-        github: "https://github.com/wildland-game",
-        website: nil,
-    ),
-    Project(
-        name: "Personal Tool",
-        description:
-            "My own Closed-Source & Private Tool for Productivity & Fun!!!",
-        image: "/assets/wildland.png",
-        github: nil,
-        website: "https://www.youtube.com/watch?v=nxIf2kuShtY",
-    ),
-    Project(
         name: "Coming Soon...",
         description:
             "I'm working on some more impressive projects at the moment, can't wait to share@",
@@ -94,8 +78,8 @@ final class NavBar {
                 { self.showStatsLink },
                 states: [],
                 If: {
-                    HyperLink(attributes: { ["href": "/stats", "className": "social-link"] }) {
-                        Text({ "Stats" })
+                    HyperLink(attributes: { ["href": "/travel", "className": "social-link"] }) {
+                        Text({ "Travel" })
                     }
                 },
             )
@@ -266,49 +250,232 @@ final class ContactSection {
 // MARK: - Stats
 
 final class StatsPage {
-    func render() -> AnyElement {
-        Div(attributes: { ["className": "container"] }) {
-            NavBar(showStatsLink: false).render()
-
-            Div(attributes: { ["className": "section"] }) {
-                Div(attributes: { ["className": "section-title"] }) {
-                    Text({ "Run Stats" })
+    func renderActivityDetail(_ event: TravelEvent) -> AnyElement {
+        Div(
+            attributes: {
+                [
+                    "className": "activity-detail",
+                    "id": "activity-detail-\(event.id)",
+                ]
+            },
+        ) {
+            Div(attributes: { ["className": "travel-event-card"] }) {
+                Div(attributes: { ["className": "travel-event-type"] }) {
+                    Text({ event.type.uppercased() })
                 }
 
-                Div(attributes: { ["className": "stats-card"] }) {
-                    Div(attributes: { ["className": "stats-card-header"] }) {
-                        Div(attributes: { ["className": "stats-card-title"] }) {
-                            Text({ "Pace & Heart Rate" })
+                Div(attributes: { ["className": "travel-event-title"] }) {
+                    Text({ event.title })
+                }
+
+                Div(attributes: { ["className": "travel-event-meta"] }) {
+                    Text({ "\(formatDisplayDate(event.date)) · \(event.location)" })
+                }
+
+                Div(attributes: { ["className": "travel-event-desc"] }) {
+                    Text({ event.description })
+                }
+
+                Div(attributes: { ["className": "travel-event-stats"] }) {
+                    Text({ event.stats })
+                }
+
+                Div(attributes: { ["className": "travel-links"] }) {
+                    If(
+                        { !event.stravaUrl.isEmpty },
+                        states: [],
+                        If: {
+                            HyperLink(
+                                attributes: {
+                                    [
+                                        "href": event.stravaUrl,
+                                        "target": "_blank",
+                                        "className": "button secondary",
+                                    ]
+                                },
+                            ) {
+                                Text({ "Strava" })
+                            }
+                        },
+                    )
+
+                    If(
+                        { !event.youtubeUrl.isEmpty },
+                        states: [],
+                        If: {
+                            HyperLink(
+                                attributes: {
+                                    [
+                                        "href": event.youtubeUrl,
+                                        "target": "_blank",
+                                        "className": "button secondary",
+                                    ]
+                                },
+                            ) {
+                                Text({ "YouTube" })
+                            }
+                        },
+                    )
+
+                    If(
+                        { !event.itineraryUrl.isEmpty },
+                        states: [],
+                        If: {
+                            HyperLink(
+                                attributes: {
+                                    [
+                                        "href": event.itineraryUrl,
+                                        "target": "_blank",
+                                        "className": "button secondary",
+                                    ]
+                                },
+                            ) {
+                                Text({ "Itinerary" })
+                            }
+                        },
+                    )
+                }
+
+                If(
+                    { !event.youtubeTitle.isEmpty },
+                    states: [],
+                    If: {
+                        Div(attributes: { ["className": "travel-youtube-note"] }) {
+                            Text({ event.youtubeTitle })
+                        }
+                    },
+                )
+            }
+
+            If(
+                { !event.flights.isEmpty },
+                states: [],
+                If: {
+                    Div(attributes: { ["className": "drawer-section"] }) {
+                        Div(attributes: { ["className": "drawer-section-title"] }) {
+                            Text({ "Flights" })
                         }
 
-                        Div(attributes: { ["className": "chart-legend"] }) {
-                            Div(attributes: { ["className": "legend-item"] }) {
-                                Span(attributes: { ["className": "legend-dot pace"] }) {}
-                                Text({ "Pace (km/h)" })
-                            }
+                        Div(attributes: { ["className": "travel-flight-note"] }) {
+                            Text({ event.flightNote })
+                        }
 
-                            Div(attributes: { ["className": "legend-item"] }) {
-                                Span(attributes: { ["className": "legend-dot hr"] }) {}
-                                Text({ "Avg HR" })
+                        ForEach(items: State(event.flights)) { flight in
+                            Div(attributes: { ["className": "travel-flight-card"] }) {
+                                Div(attributes: { ["className": "travel-flight-direction"] }) {
+                                    Text({ "\(flight.direction) · \(formatDisplayDate(flight.date))" })
+                                }
+
+                                Div(attributes: { ["className": "travel-flight-route"] }) {
+                                    Text({ "\(flight.flightNumber) · \(flight.fromCode) → \(flight.toCode)" })
+                                }
+
+                                Div(attributes: { ["className": "travel-flight-times"] }) {
+                                    Text({ "\(flight.depart) → \(flight.arrive) · \(flight.duration)" })
+                                }
+
+                                Div(attributes: { ["className": "travel-flight-meta"] }) {
+                                    Text({ "\(flight.layover) · \(flight.cost)" })
+                                }
+
+                                HyperLink(
+                                    attributes: {
+                                        [
+                                            "href": flight.flightradarUrl,
+                                            "target": "_blank",
+                                            "className": "button secondary travel-flight-link",
+                                        ]
+                                    },
+                                ) {
+                                    Text({ "Flightradar24" })
+                                }
                             }
                         }
 
-                        Button(
-                            { ["className": "button secondary share-button"] },
-                            onclick: { shareRunChart() },
-                        ) {
-                            Text({ "Share" })
+                        Div(attributes: { ["className": "travel-flight-total"] }) {
+                            Text({ flightTotalLabel(for: event.flights) })
+                        }
+
+                        Div(attributes: { ["className": "travel-trip-cost-breakdown"] }) {
+                            Text({ tripCostBreakdown(for: event) })
+                        }
+
+                        Div(attributes: { ["className": "travel-trip-total"] }) {
+                            Text({ tripTotalLabel(for: event) })
                         }
                     }
+                },
+            )
+        }
+    }
 
-                    Div(attributes: { ["className": "chart-container"] }) {
-                        Div(attributes: { ["id": "run-chart-container", "className": "run-chart"] }) {}
+    func render() -> AnyElement {
+        Div(attributes: { ["className": "stats-layout"] }) {
+            Div(attributes: { ["className": "stats-map-pane"] }) {
+                Div(attributes: { ["id": "run-map", "className": "run-map"] }) {}
+            }
+
+            Div(attributes: { ["className": "stats-drawer"] }) {
+                Div(attributes: { ["className": "stats-drawer-header"] }) {
+                    HyperLink(attributes: { ["href": "/", "className": "social-link"] }) {
+                        Text({ "Home" })
                     }
 
-                    Div(attributes: { ["className": "stats-muted"] }) {
-                        Text({
-                            "Higher green line means faster pace. White line shows average heart rate over time."
-                        })
+                    Div(attributes: { ["className": "stats-drawer-title"] }) {
+                        Text({ "Travel" })
+                    }
+
+                    Div(attributes: { ["className": "activity-list"] }) {
+                        ForEach(items: State(travelEvents)) { event in
+                            Button(
+                                {
+                                    [
+                                        "className": "activity-item",
+                                        "id": "activity-item-\(event.id)",
+                                    ]
+                                },
+                                onclick: {
+                                    _ = JSObject.global.eval.function!(
+                                        JSValue.string(
+                                            "window.__openActivity && window.__openActivity('\(event.id)', true)",
+                                        ),
+                                    )
+                                },
+                            ) {
+                                Div(attributes: { ["className": "activity-item-type"] }) {
+                                    Text({ event.type.uppercased() })
+                                }
+
+                                Div(attributes: { ["className": "activity-item-title"] }) {
+                                    Text({ event.title })
+                                }
+
+                                Div(attributes: { ["className": "activity-item-meta"] }) {
+                                    Text({ "\(formatDisplayDate(event.date)) · \(event.location)" })
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Div(attributes: { ["className": "stats-drawer-body"] }) {
+                    Div(attributes: { ["className": "activity-detail-view"] }) {
+                        Div(attributes: { ["className": "activity-detail-toolbar"] }) {
+                            Button(
+                                { ["className": "activity-detail-close", "aria-label": "Close activity"] },
+                                onclick: {
+                                    _ = JSObject.global.eval.function!(
+                                        JSValue.string("window.__closeActivity && window.__closeActivity()"),
+                                    )
+                                },
+                            ) {
+                                Text({ "×" })
+                            }
+                        }
+
+                        ForEach(items: State(travelEvents)) { event in
+                            self.renderActivityDetail(event)
+                        }
                     }
                 }
             }
@@ -338,7 +505,7 @@ final class App {
     }
 
     func render() -> AnyElement {
-        if path == "/stats" {
+        if path == "/travel" {
             return StatsPage().render()
         }
 
@@ -352,6 +519,6 @@ let appPath = currentPath()
 let renderer = DomRenderer(root: App(path: appPath).render())
 renderer.mount()
 
-if appPath == "/stats" {
-    mountRunChart()
+if appPath == "/travel" {
+    mountRunMap()
 }

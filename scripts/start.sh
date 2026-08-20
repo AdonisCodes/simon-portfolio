@@ -9,7 +9,7 @@ bash scripts/build.sh
 
 echo ""
 echo "Serving at http://localhost:8080"
-echo "Stats page: http://localhost:8080/stats"
+echo "Travel page: http://localhost:8080/travel"
 echo ""
 
 npx serve . -l 8080 -s
