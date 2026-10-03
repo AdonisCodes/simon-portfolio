@@ -176,7 +176,8 @@ final class WorkoutPage {
                     If: {
                         Div(attributes: { ["className": "workout-muted"] }) {
                             Text({
-                                "This link doesn't include readable workout details, but you can still open it in the app."
+                                "This link doesn't include readable workout details, "
+                                    + "but you can still open it in the app."
                             })
                         }
                     },
