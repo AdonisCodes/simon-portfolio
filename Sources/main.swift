@@ -509,6 +509,10 @@ final class App {
             return StatsPage().render()
         }
 
+        if path == "/w" || path.hasPrefix("/w/") {
+            return WorkoutPage().render()
+        }
+
         return HomePage().render()
     }
 }

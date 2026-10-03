@@ -37,11 +37,13 @@ WORKDIR /dist
 # Copy static assets
 COPY --from=builder /app/index.html ./index.html
 COPY --from=builder /app/assets ./assets
+COPY --from=builder /app/.well-known ./.well-known
 COPY --from=builder /app/.build ./.build
 
 # Sanity checks (fail fast)
 RUN test -f .build/plugins/PackageToJS/outputs/Package/index.js && \
-    test -f .build/plugins/PackageToJS/outputs/Package/portfolio.wasm
+    test -f .build/plugins/PackageToJS/outputs/Package/portfolio.wasm && \
+    test -f .well-known/apple-app-site-association
 
 # --------------------------------------------------
 # Stage 3: Static runtime (nginx)
