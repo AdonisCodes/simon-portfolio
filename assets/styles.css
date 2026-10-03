@@ -770,6 +770,91 @@ button.activity-detail-close:hover {
     filter: brightness(1);
 }
 
+/* ---------------- WORKOUT (/w) ---------------- */
+
+.workout-container {
+    max-width: 560px;
+}
+
+.workout-card {
+    padding: 28px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.04),
+            rgba(255, 255, 255, 0.01));
+}
+
+.workout-kicker {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #4fa760;
+    margin-bottom: 8px;
+}
+
+.workout-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    overflow-wrap: anywhere;
+}
+
+.workout-duration {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 16px;
+}
+
+.workout-muted {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 16px;
+}
+
+.workout-segments {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 8px 0 24px;
+}
+
+.workout-segment {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+.workout-segment-title {
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.workout-segment-detail {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+}
+
+.workout-open-button {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 16px;
+    margin-top: 8px;
+}
+
+.workout-hint {
+    margin-top: 14px;
+    margin-bottom: 0;
+    text-align: center;
+}
+
 /* ---------------- SOCIALS (FIXED) ---------------- */
 
 .socials {
